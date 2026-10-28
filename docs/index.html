@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JOJO Server: free local web server for Windows (Laragon and XAMPP alternative)</title>
+<meta name="description" content="Free open-source local web server for Windows. Nginx or Apache, PHP, MySQL, PostgreSQL, Redis, one-click Laravel and WordPress. Laragon and XAMPP alternative.">
+<meta name="keywords" content="local web server windows, laragon alternative, xampp alternative, wamp alternative, php development environment windows, laravel local server, wordpress local development, nginx apache windows">
+<meta name="author" content="Hridoy Sarker">
+<link rel="canonical" href="https://hridoysarker6.github.io/jojo-server/">
+<link rel="icon" href="favicon.ico">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JOJO Server">
+<meta property="og:title" content="JOJO Server: free local web server for Windows">
+<meta property="og:description" content="Nginx or Apache, PHP, MySQL, PostgreSQL, Redis and one-click Laravel and WordPress sites. Free and open source.">
+<meta property="og:url" content="https://hridoysarker6.github.io/jojo-server/">
+<meta property="og:image" content="https://hridoysarker6.github.io/jojo-server/social.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="JOJO Server: free local web server for Windows">
+<meta name="twitter:description" content="A free, open-source Laragon and XAMPP alternative for PHP developers.">
+<meta name="twitter:image" content="https://hridoysarker6.github.io/jojo-server/social.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "JOJO Server",
+  "description": "A free, open-source local web server for Windows: Nginx or Apache, PHP, MySQL, PostgreSQL, Redis and Mailpit, with one-click Laravel and WordPress sites.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Windows 10, Windows 11",
+  "softwareVersion": "1.2.0",
+  "license": "https://opensource.org/licenses/MIT",
+  "url": "https://hridoysarker6.github.io/jojo-server/",
+  "downloadUrl": "https://github.com/hridoysarker6/jojo-server/releases",
+  "codeRepository": "https://github.com/hridoysarker6/jojo-server",
+  "author": { "@type": "Person", "name": "Hridoy Sarker" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is JOJO Server free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is open source under the MIT license. There is no paid version and nothing is locked." } },
+    { "@type": "Question", "name": "Which versions of Windows does it support?", "acceptedAnswer": { "@type": "Answer", "text": "64-bit Windows 10 and 11. It has been tested on Windows 10." } },
+    { "@type": "Question", "name": "Can I use Apache instead of Nginx?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Install both and choose one in Settings. Only one web server runs at a time, on the same port. Apache reads .htaccess files." } },
+    { "@type": "Question", "name": "Can different projects use different PHP versions?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every site can have its own PHP version, and the Terminal button of a site opens a command prompt that uses that site's PHP, Composer and Node.js." } },
+    { "@type": "Question", "name": "Do I need administrator rights?", "acceptedAnswer": { "@type": "Answer", "text": "Installing and running the servers does not need them. A few optional features ask for a single Windows prompt: editing the hosts file, turning on wildcard domains and trusting the local HTTPS certificate." } },
+    { "@type": "Question", "name": "Is it a Laragon or XAMPP alternative?", "acceptedAnswer": { "@type": "Answer", "text": "It covers similar ground for PHP developers on Windows. It is an independent project and is not affiliated with Laragon or XAMPP." } }
+  ]
+}
+</script>
+<style>
+:root{--bg:#0d0b1a;--panel:#15122a;--line:#2a2550;--fg:#ece9ff;--mute:#a7a1cf;--accent:#ff3d8b;--accent2:#7c5cff}
+@media (prefers-color-scheme: light){:root{--bg:#f6f4ff;--panel:#ffffff;--line:#ddd7f7;--fg:#1a1533;--mute:#5d5788;--accent:#d91f6e;--accent2:#5b3df0}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 "Segoe UI",system-ui,sans-serif}
+a{color:var(--accent2)}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+header{padding:20px 0}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:20px;text-decoration:none;color:var(--fg)}
+.brand img{width:40px;height:40px;border-radius:10px}
+.hero{padding:56px 0 40px}
+h1{font-size:clamp(34px,6vw,56px);line-height:1.1;margin:0 0 16px;letter-spacing:-1px}
+h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:20px;color:var(--mute);max-width:44em}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0 8px}
+.btn{display:inline-block;padding:13px 22px;border-radius:12px;font-weight:700;text-decoration:none;border:1px solid var(--line);color:var(--fg);background:var(--panel)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),#ff6a3d);border-color:transparent;color:#fff}
+.small{color:var(--mute);font-size:14px}
+h2{font-size:28px;margin:56px 0 18px;letter-spacing:-.5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+.card h3{margin:0 0 6px;font-size:18px}
+.card p{margin:0;color:var(--mute);font-size:15px}
+ol{padding-left:22px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:10px 0}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0;color:var(--mute)}
+code{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.9em}
+footer{margin-top:64px;padding:28px 0 48px;border-top:1px solid var(--line);color:var(--mute);font-size:14px}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <a class="brand" href="./"><img src="icon.png" alt="" width="40" height="40"> JOJO Server</a>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>A free local web server <span>for Windows</span></h1>
+    <p class="lead">Run Nginx or Apache with PHP, MySQL, PostgreSQL, Redis and Mailpit on your own PC. Create Laravel and WordPress sites in one click. A free, open-source Laragon and XAMPP alternative for PHP developers.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/hridoysarker6/jojo-server/releases/latest">Download for Windows</a>
+      <a class="btn" href="https://github.com/hridoysarker6/jojo-server">View the source on GitHub</a>
+    </div>
+    <p class="small">64-bit Windows 10 and 11 &middot; MIT license &middot; no account, no ads. The installer is not code-signed yet, so Windows may say "Unknown publisher": choose <em>More info, then Run anyway</em>.</p>
+  </section>
+
+  <section>
+    <h2>Everything a PHP project needs</h2>
+    <div class="grid">
+      <div class="card"><h3>Nginx or Apache</h3><p>Pick the web server you like. Apache reads <code>.htaccess</code>. Both serve every site, with HTTPS and per-site PHP.</p></div>
+      <div class="card"><h3>PHP, any version</h3><p>Install several PHP versions and give each site its own. Manage extensions such as Redis, Xdebug and APCu, and PHP settings, from the app.</p></div>
+      <div class="card"><h3>Databases and cache</h3><p>MySQL, PostgreSQL and Redis with a built-in Redis browser, plus DbGate and Adminer for your data.</p></div>
+      <div class="card"><h3>One-click projects</h3><p>New Laravel (with database, mail and npm set up), WordPress or Symfony sites, ready to open in the browser.</p></div>
+      <div class="card"><h3>Local domains and HTTPS</h3><p>Every folder becomes <code>name.test</code>. Turn on wildcard domains for sub-domains, and trusted HTTPS with one click.</p></div>
+      <div class="card"><h3>Mail and logs</h3><p>Mailpit catches every email your app sends. A log viewer shows PHP, web server and Laravel logs.</p></div>
+      <div class="card"><h3>Terminal and tools</h3><p>A terminal per project with that project's PHP, Composer and Node.js on the path, and background workers for queues and schedulers.</p></div>
+      <div class="card"><h3>Share a site</h3><p>Give a client a temporary public link to your local site through a free Cloudflare tunnel.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Get started in three steps</h2>
+    <ol>
+      <li>Download and run the installer. Choose where your files should live (drive D: is suggested when you have one).</li>
+      <li>On the Dashboard, click <strong>Install recommended stack</strong>, then <strong>Start All</strong>.</li>
+      <li>In Sites, create a project and open <code>http://yourproject.test</code>.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Questions</h2>
+    <details><summary>Is JOJO Server free?</summary><p>Yes. It is open source under the MIT license. There is no paid version and nothing is locked.</p></details>
+    <details><summary>Which versions of Windows does it support?</summary><p>64-bit Windows 10 and 11. It has been tested on Windows 10.</p></details>
+    <details><summary>Can I use Apache instead of Nginx?</summary><p>Yes. Install both and choose one in Settings. Only one runs at a time, on the same port.</p></details>
+    <details><summary>Can different projects use different PHP versions?</summary><p>Yes. Every site has its own PHP version, and its Terminal button uses the same PHP, Composer and Node.js.</p></details>
+    <details><summary>Do I need administrator rights?</summary><p>Not for installing or running the servers. A few optional features ask for one Windows prompt: editing the hosts file, wildcard domains and trusting the local HTTPS certificate. The app lists exactly what it changes in its README.</p></details>
+    <details><summary>Is it a Laragon or XAMPP alternative?</summary><p>It covers similar ground for PHP developers on Windows. It is an independent project and is not affiliated with Laragon or XAMPP.</p></details>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>JOJO Server is free software released under the <a href="https://github.com/hridoysarker6/jojo-server/blob/main/LICENSE">MIT license</a>. Made by Hridoy Sarker. <a href="https://github.com/hridoysarker6/jojo-server/issues">Report a problem or suggest a feature</a>.</p>
+</footer>
+</body>
+</html>

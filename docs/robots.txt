@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hridoysarker6.github.io/jojo-server/sitemap.xml
