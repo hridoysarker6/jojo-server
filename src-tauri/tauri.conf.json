@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "JOJO Server",
+  "version": "1.2.0",
+  "identifier": "com.jojo.server",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "JOJO Server",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 940,
+        "minHeight": 620
+      }
+    ],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "createUpdaterArtifacts": true,
+    "publisher": "Hridoy Sarker",
+    "copyright": "Copyright (c) 2026 Hridoy Sarker. MIT License.",
+    "category": "DeveloperTool",
+    "shortDescription": "Free local web server for Windows",
+    "longDescription": "JOJO Server runs Nginx or Apache, PHP, MySQL, PostgreSQL, Redis and Mailpit on your PC, with one-click Laravel and WordPress sites, HTTPS and wildcard domains. A free, open-source Laragon and XAMPP alternative.",
+    "windows": {
+      "nsis": { "installMode": "currentUser", "installerHooks": "windows/installer-hooks.nsh" }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDg2MjhBOTIxMjNDOTNDQzIKUldUQ1BNa2pJYWtvaGhhaWY3Z3RGZnordXVMVXg5MWJwY1BMSlRDWEwwNWFkQ3k3Mko5UWNlOTgK",
+      "endpoints": ["https://updates.invalid/jojo-server/latest.json"],
+      "windows": { "installMode": "passive" }
+    }
+  }
+}

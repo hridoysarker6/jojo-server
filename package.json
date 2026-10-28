@@ -1,0 +1,29 @@
+{
+  "name": "jojo-server",
+  "private": true,
+  "description": "Free, open-source local web server for Windows: Nginx or Apache, PHP, MySQL, PostgreSQL, Redis. A Laragon and XAMPP alternative.",
+  "license": "MIT",
+  "author": "Hridoy Sarker",
+  "homepage": "https://hridoysarker6.github.io/jojo-server/",
+  "repository": { "type": "git", "url": "git+https://github.com/hridoysarker6/jojo-server.git" },
+  "bugs": { "url": "https://github.com/hridoysarker6/jojo-server/issues" },
+  "keywords": ["local web server", "windows", "laragon alternative", "xampp alternative", "php", "laravel", "wordpress", "nginx", "apache", "mysql", "tauri"],
+  "version": "1.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0"
+  }
+}

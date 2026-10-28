@@ -1,0 +1,35 @@
+[package]
+name = "jojo-server"
+version = "1.2.0"
+description = "Free, open-source local web server for Windows: Nginx or Apache, PHP, MySQL, PostgreSQL, Redis (a Laragon and XAMPP alternative)"
+edition = "2021"
+license = "MIT"
+authors = ["Hridoy Sarker"]
+repository = "https://github.com/hridoysarker6/jojo-server"
+homepage = "https://hridoysarker6.github.io/jojo-server/"
+keywords = ["web-server", "windows", "php", "laragon", "tauri"]
+
+[lib]
+name = "jojo_server_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-single-instance = "2"
+tauri-plugin-updater = "2"
+url = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ureq = "2"
+sha2 = "0.10"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
