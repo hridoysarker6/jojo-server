@@ -1,0 +1,26 @@
+name: Check
+
+# A quick check on every push and pull request: the front end builds and the Rust code compiles.
+# The full end-to-end tests download real programs and are run by hand (see the README).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: npm run build
+      - name: Compile the Rust code
+        run: cargo check --manifest-path src-tauri/Cargo.toml --tests
