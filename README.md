@@ -74,7 +74,7 @@ Upload all three to the place `-UpdateUrl` points at (for GitHub: a release whos
 
 ### Releases from GitHub
 
-`.github/workflows/build.yml` builds the installer when you push a tag such as `v1.2.1` and attaches it to a GitHub Release. It needs no setup. If you also add the repository secrets `TAURI_SIGNING_PRIVATE_KEY` (the text of `updater.key`) and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (the text of `updater.pass`), the release also gets the update signature and `latest.json` for the in-app updater. `.github/workflows/ci.yml` checks that the code builds on every push.
+`.github/workflows/build.yml` builds the installer when you push a tag such as `v1.2.1` and attaches it to a GitHub Release, using `.github/RELEASE_NOTES.md` as the release text (update that file before tagging). It needs no setup. If you also add the repository secrets `TAURI_SIGNING_PRIVATE_KEY` (the text of `updater.key`) and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` (the text of `updater.pass`), the release also gets the update signature and `latest.json` for the in-app updater. `.github/workflows/ci.yml` checks that the code builds on every push.
 
 ### Removing the Windows "unknown publisher" warning
 
