@@ -1,9 +1,10 @@
 name: Release
 
-# Builds the Windows installer when you push a tag such as v1.2.1, and attaches it to a GitHub Release
-# together with its update signature and latest.json.
+# Builds the Windows installer when you push a tag such as v1.2.1 and attaches it to a GitHub Release.
 #
-# One-time setup (Settings > Secrets and variables > Actions):
+# It works with no setup. If you also add these repository secrets
+# (Settings > Secrets and variables > Actions), the release gets an update signature and a latest.json
+# for the in-app updater:
 #   TAURI_SIGNING_PRIVATE_KEY           the full text of %USERPROFILE%\.jojo-signing\updater.key
 #   TAURI_SIGNING_PRIVATE_KEY_PASSWORD  the text of %USERPROFILE%\.jojo-signing\updater.pass
 #
@@ -33,22 +34,36 @@ jobs:
         with:
           workspaces: src-tauri
 
-      - name: Check the signing key is available
+      - name: Decide whether the build is signed for updates
+        id: mode
         shell: pwsh
         env:
           KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
-          if (-not $env:KEY) { throw "Add the repository secrets TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD (see the top of this file)." }
+          if ($env:KEY) {
+            "signed=true" >> $env:GITHUB_OUTPUT
+            Write-Host "Signing key found: the release will include an update signature and latest.json."
+          } else {
+            "signed=false" >> $env:GITHUB_OUTPUT
+            # Without the key, do not ask Tauri for updater files (it would fail looking for the key).
+            '{"bundle":{"createUpdaterArtifacts":false}}' | Set-Content src-tauri/tauri.unsigned.conf.json -Encoding ascii
+            Write-Host "No signing key: building the installer only."
+          }
 
       - run: npm ci
 
-      - name: Build the installer
+      - name: Build the installer (with update signature)
+        if: steps.mode.outputs.signed == 'true'
         run: npm run tauri build
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           # To switch automatic updates on, uncomment the next line:
           # JOJO_UPDATE_URL: https://github.com/${{ github.repository }}/releases/latest/download/latest.json
+
+      - name: Build the installer
+        if: steps.mode.outputs.signed != 'true'
+        run: npm run tauri build -- --config src-tauri/tauri.unsigned.conf.json
 
       - name: Prepare the release files
         shell: pwsh
@@ -61,20 +76,24 @@ jobs:
           New-Item -ItemType Directory -Force $out | Out-Null
           $name = "JOJO-Server_${version}_x64-setup.exe"
           Copy-Item $exe.FullName "$out/$name"
-          Copy-Item "$($exe.FullName).sig" "$out/$name.sig"
-          $tag = "${{ github.ref_name }}"
-          $latest = [ordered]@{
-            version  = $version
-            notes    = "See the release page for what is new."
-            pub_date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-            platforms = [ordered]@{
-              "windows-x86_64" = [ordered]@{
-                signature = (Get-Content "$out/$name.sig" -Raw).Trim()
-                url       = "https://github.com/${{ github.repository }}/releases/download/$tag/$name"
+          $sig = "$($exe.FullName).sig"
+          if (Test-Path $sig) {
+            Copy-Item $sig "$out/$name.sig"
+            $tag = "${{ github.ref_name }}"
+            $latest = [ordered]@{
+              version  = $version
+              notes    = "See the release page for what is new."
+              pub_date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+              platforms = [ordered]@{
+                "windows-x86_64" = [ordered]@{
+                  signature = (Get-Content "$out/$name.sig" -Raw).Trim()
+                  url       = "https://github.com/${{ github.repository }}/releases/download/$tag/$name"
+                }
               }
             }
+            $latest | ConvertTo-Json -Depth 6 | Set-Content "$out/latest.json" -Encoding utf8
           }
-          $latest | ConvertTo-Json -Depth 6 | Set-Content "$out/latest.json" -Encoding utf8
+          Get-ChildItem $out | Select-Object Name, Length
 
       - name: Publish the GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
