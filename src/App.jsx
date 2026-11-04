@@ -723,6 +723,13 @@ function WebServerCard({ ov, services, catalog, act, busy }) {
   const apache = services.find((s) => s.id === "apache");
   const active = ov?.web_server || "nginx";
   const apacheEntry = (catalog || []).find((c) => c.service === "apache");
+  const [timeout, setTimeoutText] = useState("300");
+  useEffect(() => { if (ov?.web_timeout) setTimeoutText(String(ov.web_timeout)); }, [ov?.web_timeout]);
+  const commitTimeout = () => {
+    const n = parseInt(timeout, 10);
+    if (!n || n < 5 || n > 7200 || n === ov?.web_timeout) { setTimeoutText(String(ov?.web_timeout || 300)); return; }
+    act("webtimeout", "set_web_timeout", { seconds: n }, `Request timeout is now ${n} seconds`);
+  };
   return (
     <div className="card">
       <div className="sh"><h2>Web server</h2><span>Only one runs at a time, on the same port</span></div>
@@ -742,6 +749,17 @@ function WebServerCard({ ov, services, catalog, act, busy }) {
         <p className="empty grow">
           <b>Nginx</b> is lighter and quicker. <b>Apache</b> reads <code>.htaccess</code> files, which many older PHP projects and WordPress plugins rely on.
           Turning one on stops the other. Your sites, HTTPS and PHP versions work with both. Apache needs the Microsoft Visual C++ 2015-2026 runtime (most PCs have it).
+        </p>
+      </div>
+      <div className="row wrap" style={{ marginTop: 14 }}>
+        <label className="fld">Request timeout (seconds)
+          <input className="field" inputMode="numeric" value={timeout} disabled={busy.webtimeout}
+            onChange={(e) => setTimeoutText(e.target.value.replace(/\D/g, ""))}
+            onBlur={commitTimeout} onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()} />
+        </label>
+        <p className="empty grow">
+          How long Nginx (<code>fastcgi_read_timeout</code>) or Apache waits for PHP to answer before it shows "504 Gateway Timeout". Raise it for long imports, reports or uploads.
+          Pages are also stopped by PHP's own <b>Max execution time</b> (PHP settings above), so raise that too. Changing this restarts the web server.
         </p>
       </div>
     </div>

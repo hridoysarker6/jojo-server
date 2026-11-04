@@ -499,6 +499,66 @@ fn apache_serves_sites_with_htaccess_https_and_switches_with_nginx() {
 }
 
 #[test]
+fn slow_pages_follow_the_request_timeout_on_nginx_and_apache() {
+    let g = setup();
+    let core = &g.0;
+    if m::versions("apache").is_empty() {
+        let e = m::catalog().into_iter().find(|c| c.service == "apache").expect("apache in catalog");
+        core.install("apache", &e.version, &e.url).expect("install apache");
+    }
+    m::set_port("nginx", 8081).unwrap();
+    m::set_port("php", 9100).unwrap();
+    m::create_site("slow").unwrap();
+    std::fs::write(m::www_dir().join("slow").join("slow.php"), "<?php sleep(8); echo 'finished';").unwrap();
+
+    assert_eq!(m::web_timeout_of(&m::load_settings()), 300, "default is 5 minutes");
+    assert!(core.set_web_timeout(2).is_err(), "too short is refused");
+    assert!(core.set_web_timeout(9000).is_err(), "too long is refused");
+    core.start("php").unwrap();
+
+    for web in ["nginx", "apache"] {
+        core.start(web).unwrap_or_else(|e| panic!("start {web}: {e}"));
+        // 1. a timeout shorter than the page: the web server gives up
+        core.set_web_timeout(5).unwrap(); // restarts the running web server
+        assert!(core.is_running(web));
+        let t = std::time::Instant::now();
+        let cut = curl(&["-i", "-m", "40", "-H", "Host: slow.test", "http://127.0.0.1:8081/slow.php"]);
+        let took = t.elapsed().as_secs_f32();
+        println!("{web}: timeout 5s -> answered after {took:.1}s: {}", cut.lines().next().unwrap_or(""));
+        assert!(!cut.contains("finished"), "{web} should give up before the page finishes: {cut}");
+        assert!(cut.starts_with("HTTP/1.1 5"), "{web} should answer with a 5xx timeout error: {cut}");
+        assert!(took < 8.0, "{web} gave up after {took}s, which is not the 5 s timeout");
+
+        // 2. a longer timeout: the same page now completes
+        core.set_web_timeout(30).unwrap();
+        let ok = curl(&["-m", "50", "-H", "Host: slow.test", "http://127.0.0.1:8081/slow.php"]);
+        assert!(ok.contains("finished"), "{web} with a 30 s timeout should deliver the page: {ok}");
+
+        let conf = if web == "nginx" {
+            std::fs::read_to_string(m::root().join("run").join("nginx").join("nginx.conf")).unwrap()
+        } else {
+            std::fs::read_to_string(m::root().join("run").join("apache").join("httpd.conf")).unwrap()
+        };
+        if web == "nginx" {
+            assert!(conf.contains("fastcgi_read_timeout 30s;"), "nginx.conf: {conf}");
+        } else {
+            assert!(conf.contains("Timeout 30\n") && conf.contains("ProxyTimeout 30\n"), "httpd.conf");
+        }
+        assert_eq!(m::web_timeout_of(&m::load_settings()), 30);
+        core.stop(web).unwrap();
+    }
+
+    // Nginx's upload limit follows PHP's post_max_size
+    let mut conf = m::load_settings().php_conf;
+    conf.post_max_size = "512M".into();
+    m::set_php_conf(conf).unwrap();
+    core.start("nginx").unwrap();
+    let text = std::fs::read_to_string(m::root().join("run").join("nginx").join("nginx.conf")).unwrap();
+    assert!(text.contains("client_max_body_size 512M;"), "upload limit should follow PHP: {text}");
+    assert_eq!(core.overview().web_timeout, 30);
+}
+
+#[test]
 fn dbgate_installs_and_is_found() {
     let g = setup();
     let exe_before = jojo_server_lib::tools::dbgate_exe();

@@ -355,6 +355,24 @@ pub struct Settings {
     /// "nginx" (default) or "apache": the web server started by Start All
     #[serde(default)]
     pub web_server: Option<String>,
+    /// seconds the web server waits for PHP to answer before it gives up (504 Gateway Timeout)
+    #[serde(default)]
+    pub web_timeout: Option<u32>,
+}
+
+/// Default 300 s (5 minutes): long enough for imports and reports on a development machine.
+pub fn web_timeout_of(s: &Settings) -> u32 {
+    s.web_timeout.filter(|t| (5..=7200).contains(t)).unwrap_or(300)
+}
+
+/// Nginx's body-size limit follows PHP's post_max_size, so a bigger PHP upload limit is not stopped by the web server.
+fn web_body_limit(s: &Settings) -> String {
+    let v = s.php_conf.post_max_size.trim();
+    if v == "-1" || v == "0" || v.is_empty() {
+        "0".into() // unlimited
+    } else {
+        v.to_string()
+    }
 }
 
 /// Wildcard domains: a small built-in DNS server answers every name under the domain suffix.
@@ -1355,7 +1373,10 @@ http {
     default_type application/octet-stream;
     access_log "@RUN@/logs/access.log";
     sendfile off;
-    client_max_body_size 128m;
+    client_max_body_size @BODY@;
+    fastcgi_read_timeout @TIMEOUT@s;
+    fastcgi_send_timeout @TIMEOUT@s;
+    proxy_read_timeout @TIMEOUT@s;
     server_names_hash_bucket_size 128;
     client_body_temp_path "@RUN@/temp/client_body";
     proxy_temp_path "@RUN@/temp/proxy";
@@ -1441,6 +1462,8 @@ fn write_nginx_conf(base: &Path, run: &Path, s: &Settings) -> Result<PathBuf, St
         .replace("@RUN@", &fwd(run))
         .replace("@CONF@", &conf_dir)
         .replace("@PORT@", &port)
+        .replace("@TIMEOUT@", &web_timeout_of(s).to_string())
+        .replace("@BODY@", &web_body_limit(s))
         .replace("@PHP@", &default_port.to_string())
         .replace("@WWW@", &fwd(&www_dir()));
     let path = run.join("nginx.conf");
@@ -1506,7 +1529,7 @@ fn write_apache_conf(base: &Path, run: &Path, s: &Settings) -> Result<PathBuf, S
         c.push_str(&format!("Listen {https}\n"));
     }
     c.push_str(&format!("ServerName localhost:{port}\nServerAdmin dev@jojo.test\nServerTokens Prod\nServerSignature Off\n"));
-    c.push_str("Timeout 300\nKeepAlive On\nEnableSendfile Off\nEnableMMAP Off\n\n");
+    c.push_str(&format!("Timeout {}\nKeepAlive On\nEnableSendfile Off\nEnableMMAP Off\n\n", web_timeout_of(s)));
     for (name, file) in &modules {
         if base.join("modules").join(file).is_file() {
             c.push_str(&format!("LoadModule {name} modules/{file}\n"));
@@ -1517,7 +1540,7 @@ fn write_apache_conf(base: &Path, run: &Path, s: &Settings) -> Result<PathBuf, S
         run = fwd(run),
         base = fwd(base)
     ));
-    c.push_str("\nDirectoryIndex index.php index.html\nProxyFCGIBackendType GENERIC\n");
+    c.push_str(&format!("\nDirectoryIndex index.php index.html\nProxyFCGIBackendType GENERIC\nProxyTimeout {}\n", web_timeout_of(s)));
     // On Windows the script path reaches PHP as "/D:/..." (leading slash) and PHP answers "No input file
     // specified". Build the real path from the site's document root instead.
     c.push_str("ProxyFCGISetEnvIf \"true\" SCRIPT_FILENAME \"%{reqenv:DOCUMENT_ROOT}%{reqenv:SCRIPT_NAME}\"\n");
@@ -1603,6 +1626,7 @@ pub struct Overview {
     pub tld: String,
     pub smtp_port: u16,
     pub web_server: String,
+    pub web_timeout: u32,
     pub composer: bool,
     pub dbgate: bool,
     pub www_dir: String,
@@ -1725,6 +1749,7 @@ impl Core {
             dbgate: crate::tools::dbgate_exe().is_some(),
             smtp_port: smtp_port_of(&s),
             web_server: active_web(&s),
+            web_timeout: web_timeout_of(&s),
             tld: tld_of(&s),
             general: s.general.clone(),
             php_conf: s.php_conf.clone(),
@@ -1761,6 +1786,17 @@ impl Core {
             }
         }
         self.launch(id, &ver)
+    }
+
+    /// Change how long the web server waits for PHP (5 seconds to 2 hours) and apply it to the running server.
+    pub fn set_web_timeout(&self, seconds: u32) -> Result<(), String> {
+        if !(5..=7200).contains(&seconds) {
+            return Err("Use a timeout between 5 seconds and 7200 seconds (2 hours).".into());
+        }
+        let mut s = load_settings();
+        s.web_timeout = Some(seconds);
+        save_settings(&s)?;
+        self.restart_web()
     }
 
     /// The web server that is running now (Nginx or Apache), if any.

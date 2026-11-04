@@ -474,10 +474,23 @@ async fn set_web_server(core: State<'_, Core>, id: String) -> Result<(), String>
 async fn set_php_conf(core: State<'_, Core>, conf: manager::PhpConf) -> Result<(), String> {
     let core = core.inner().clone();
     blocking(move || {
+        let old_post = manager::load_settings().php_conf.post_max_size;
+        let new_post = conf.post_max_size.clone();
         manager::set_php_conf(conf)?;
-        core.reload_php()
+        core.reload_php()?;
+        // The web server's upload limit follows PHP's post_max_size.
+        if old_post != new_post {
+            core.restart_web()?;
+        }
+        Ok(())
     })
     .await
+}
+
+#[tauri::command]
+async fn set_web_timeout(core: State<'_, Core>, seconds: u32) -> Result<(), String> {
+    let core = core.inner().clone();
+    blocking(move || core.set_web_timeout(seconds)).await
 }
 
 #[tauri::command]
@@ -637,6 +650,7 @@ pub fn run() {
             remove_php_extension,
             set_php_conf,
             set_web_server,
+            set_web_timeout,
             set_www_dir,
             pick_folder,
             set_general,
